@@ -11,17 +11,17 @@ class PolymorphicBase(Model):
         cls._registry[class_key] = model_class
 
     @classmethod
-    def _claim(cls, data):
+    def _claim(cls, poly_field, data):
         if cls._type_field:
-            if isinstance(data, cls) and hasattr(data, cls._type_field):
-                return type(data)
-            if isinstance(data, dict) and cls._type_field in data:
-                target_type = data[cls._type_field]
-                return cls._registry.get(target_type)
             if isinstance(data, Model):
                 for model_class in cls._registry.values():
                     if isinstance(data, model_class):
                         return type(data)
+
+            if isinstance(data, dict) and cls._type_field in data:
+                target_type = data[cls._type_field]
+                return cls._registry.get(target_type)
+
         return None
 
 
