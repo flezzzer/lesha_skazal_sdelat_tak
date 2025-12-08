@@ -232,6 +232,7 @@ ArgsPolyList = types.ListType(
     min_size=1,
 )
 
+
 ClaimRegistry.register_value('valueint', ValueInt)
 ClaimRegistry.register_value('valuefloat', ValueFloat)
 ClaimRegistry.register_value('valueexpression', ValueExpression)
