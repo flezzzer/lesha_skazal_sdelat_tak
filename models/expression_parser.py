@@ -24,16 +24,12 @@ class ExpressionParser:
 
             return op
 
-        elif isinstance(node, ast.Num):  # Python <3.8
+        elif isinstance(node, ast.Num):
             if isinstance(node.n, int):
                 return ModelFactory.create_int(node.n)
             elif isinstance(node.n, float):
                 return ModelFactory.create_float(node.n)
-        elif isinstance(node, ast.Constant):  # Python 3.8+
-            if isinstance(node.value, int):
-                return ModelFactory.create_int(node.value)
-            elif isinstance(node.value, float):
-                return ModelFactory.create_float(node.value)
+
         else:
             raise TypeError(f"Unsupported AST node: {node}")
 

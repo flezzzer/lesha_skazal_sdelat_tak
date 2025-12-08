@@ -1,21 +1,41 @@
 from schematics import Model, types
+from schematics.exceptions import ValidationError
+
+
+class ClaimRegistry:
+    _value_claim_map = {}
+    _operation_claim_map = {}
+    _params_claim_map = {}
+
+    @classmethod
+    def register_value(cls, value_type, model_class):
+        cls._value_claim_map[value_type] = model_class
+
+    @classmethod
+    def register_operation(cls, operation_type, model_class):
+        cls._operation_claim_map[operation_type] = model_class
+
+    @classmethod
+    def register_params(cls, params_type, model_class):
+        cls._params_claim_map[params_type] = model_class
+
+    @classmethod
+    def value_claim_function(cls, field_instance, data):
+        value_type = data.get('value_type')
+        return cls._value_claim_map.get(value_type)
+
+    @classmethod
+    def operation_claim_function(cls, field_instance, data):
+        operation_type = data.get('operation_type')
+        return cls._operation_claim_map.get(operation_type)
+
+    @classmethod
+    def params_claim_function(cls, field_instance, data):
+        params_type = data.get('params_type')
+        return cls._params_claim_map.get(params_type)
 
 
 class ValueBase(Model):
-    def calculate(self):
-        raise NotImplementedError()
-
-
-class OperationBase(Model):
-    operation_type = types.StringType(required=True)
-
-    def calculate(self):
-        raise NotImplementedError()
-
-
-class ParamsBase(Model):
-    params_type = types.StringType(required=True)
-
     def calculate(self):
         raise NotImplementedError()
 
@@ -25,7 +45,6 @@ class ValueInt(ValueBase):
     value = types.FloatType(required=True)
 
     def validate_value(self, data, val):
-        from schematics.exceptions import ValidationError
         if not val.is_integer():
             raise ValidationError(f"Value {val} must be integer for ValueInt")
         return val
@@ -41,34 +60,12 @@ class ValueFloat(ValueBase):
     def calculate(self):
         return self.value
 
-def value_claim_function(field_instance, data):
-    value_type = data.get('value_type')
-    if value_type == 'valueint':
-        return ValueInt
-    if value_type == 'valuefloat':
-        return ValueFloat
-    if value_type == 'valueexpression':
-        return ValueExpression
-    return None
 
-ArgsPolyList = types.ListType(
-    types.PolyModelType(
-        model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
-        claim_function=value_claim_function,
-    ),
-    required=True,
-    min_size=1,
-)
+class ParamsBase(Model):
+    params_type = types.StringType(required=True)
 
-def value_claim_function(field_instance, data):
-    t = data.get("value_type")
-    if t == "valueint":
-        return ValueInt
-    if t == "valuefloat":
-        return ValueFloat
-    if t == "valueexpression":
-        return ValueExpression
-    return None
+    def calculate(self):
+        raise NotImplementedError()
 
 
 class AddParams(ParamsBase):
@@ -76,7 +73,7 @@ class AddParams(ParamsBase):
     args = types.ListType(
         types.PolyModelType(
             model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
-            claim_function=value_claim_function
+            claim_function=ClaimRegistry.value_claim_function
         ),
         required=True,
         min_size=1
@@ -91,11 +88,12 @@ class SubtractParams(ParamsBase):
     args = types.ListType(
         types.PolyModelType(
             model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
-            claim_function=value_claim_function
+            claim_function=ClaimRegistry.value_claim_function
         ),
         required=True,
         min_size=1
     )
+
     def calculate(self):
         r = self.args[0].calculate()
         for a in self.args[1:]:
@@ -108,11 +106,12 @@ class MultiplyParams(ParamsBase):
     args = types.ListType(
         types.PolyModelType(
             model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
-            claim_function=value_claim_function
+            claim_function=ClaimRegistry.value_claim_function
         ),
         required=True,
         min_size=1
     )
+
     def calculate(self):
         r = 1.0
         for a in self.args:
@@ -125,11 +124,12 @@ class DivideParams(ParamsBase):
     args = types.ListType(
         types.PolyModelType(
             model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
-            claim_function=value_claim_function
+            claim_function=ClaimRegistry.value_claim_function
         ),
         required=True,
         min_size=1
     )
+
     def calculate(self):
         r = self.args[0].calculate()
         for a in self.args[1:]:
@@ -145,11 +145,12 @@ class PowerParams(ParamsBase):
     args = types.ListType(
         types.PolyModelType(
             model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
-            claim_function=value_claim_function
+            claim_function=ClaimRegistry.value_claim_function
         ),
         required=True,
         min_size=1
     )
+
     def calculate(self):
         r = self.args[0].calculate()
         for a in self.args[1:]:
@@ -157,13 +158,11 @@ class PowerParams(ParamsBase):
         return r
 
 
+class OperationBase(Model):
+    operation_type = types.StringType(required=True)
 
-
-# AddParams.args = ArgsPolyList
-# SubtractParams.args = ArgsPolyList
-# MultiplyParams.args = ArgsPolyList
-# DivideParams.args = ArgsPolyList
-# PowerParams.args = ArgsPolyList
+    def calculate(self):
+        raise NotImplementedError()
 
 
 class AddOperation(OperationBase):
@@ -206,21 +205,6 @@ class PowerOperation(OperationBase):
         return self.params[0].calculate()
 
 
-def operation_claim_function(field_instance, data):
-    t = data.get("operation_type")
-    if t == "addoperation":
-        return AddOperation
-    if t == "subtractoperation":
-        return SubtractOperation
-    if t == "multiplyoperation":
-        return MultiplyOperation
-    if t == "divideoperation":
-        return DivideOperation
-    if t == "poweroperation":
-        return PowerOperation
-    return None
-
-
 class ValueExpression(ValueBase):
     value_type = types.StringType(default="valueexpression", required=True)
     expression = types.PolyModelType(
@@ -231,9 +215,35 @@ class ValueExpression(ValueBase):
             DivideOperation,
             PowerOperation,
         ],
-        claim_function=operation_claim_function,
+        claim_function=ClaimRegistry.operation_claim_function,
         required=True,
     )
 
     def calculate(self):
         return self.expression.calculate()
+
+
+ArgsPolyList = types.ListType(
+    types.PolyModelType(
+        model_spec=[ValueInt, ValueFloat, lambda: ValueExpression],
+        claim_function=ClaimRegistry.value_claim_function,
+    ),
+    required=True,
+    min_size=1,
+)
+
+ClaimRegistry.register_value('valueint', ValueInt)
+ClaimRegistry.register_value('valuefloat', ValueFloat)
+ClaimRegistry.register_value('valueexpression', ValueExpression)
+
+ClaimRegistry.register_operation('addoperation', AddOperation)
+ClaimRegistry.register_operation('subtractoperation', SubtractOperation)
+ClaimRegistry.register_operation('multiplyoperation', MultiplyOperation)
+ClaimRegistry.register_operation('divideoperation', DivideOperation)
+ClaimRegistry.register_operation('poweroperation', PowerOperation)
+
+ClaimRegistry.register_params('addparams', AddParams)
+ClaimRegistry.register_params('subtractparams', SubtractParams)
+ClaimRegistry.register_params('multiplyparams', MultiplyParams)
+ClaimRegistry.register_params('divideparams', DivideParams)
+ClaimRegistry.register_params('powerparams', PowerParams)
