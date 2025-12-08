@@ -29,6 +29,8 @@ class ValueBase(PolymorphicBase):
     _type_field = "type"
     type = types.StringType(required=True)
 
+
+
     def calculate(self):
         raise NotImplementedError()
 
@@ -63,7 +65,7 @@ class ParamsBase(PolymorphicBase):
 
 
 class AddParams(ParamsBase):
-    type = types.StringType(default="add", required=True)
+    type = types.StringType(default="add_params", required=True)
     args = types.ListType(
         types.PolyModelType(
             model_spec=ValueBase,
@@ -77,7 +79,7 @@ class AddParams(ParamsBase):
 
 
 class SubtractParams(ParamsBase):
-    type = types.StringType(default="subtract", required=True)
+    type = types.StringType(default="subtract_params", required=True)
     args = types.ListType(
         types.PolyModelType(
             model_spec=ValueBase,
@@ -94,7 +96,7 @@ class SubtractParams(ParamsBase):
 
 
 class MultiplyParams(ParamsBase):
-    type = types.StringType(default="multiply", required=True)
+    type = types.StringType(default="multiply_params", required=True)
     args = types.ListType(
         types.PolyModelType(
             model_spec=ValueBase,
@@ -111,7 +113,7 @@ class MultiplyParams(ParamsBase):
 
 
 class DivideParams(ParamsBase):
-    type = types.StringType(default="divide", required=True)
+    type = types.StringType(default="divide_params", required=True)
     args = types.ListType(
         types.PolyModelType(
             model_spec=ValueBase,
@@ -131,7 +133,7 @@ class DivideParams(ParamsBase):
 
 
 class PowerParams(ParamsBase):
-    type = types.StringType(default="power", required=True)
+    type = types.StringType(default="power_params", required=True)
     args = types.ListType(
         types.PolyModelType(
             model_spec=ValueBase,
@@ -225,11 +227,11 @@ ValueBase.register("int", IntValue)
 ValueBase.register("float", FloatValue)
 ValueBase.register("expression", Expression)
 
-ParamsBase.register("add", AddParams)
-ParamsBase.register("subtract", SubtractParams)
-ParamsBase.register("multiply", MultiplyParams)
-ParamsBase.register("divide", DivideParams)
-ParamsBase.register("power", PowerParams)
+ParamsBase.register("add_params", AddParams)
+ParamsBase.register("subtract_params", SubtractParams)
+ParamsBase.register("multiply_params", MultiplyParams)
+ParamsBase.register("divide_params", DivideParams)
+ParamsBase.register("power_params", PowerParams)
 
 OperationBase.register("add", Add)
 OperationBase.register("subtract", Subtract)

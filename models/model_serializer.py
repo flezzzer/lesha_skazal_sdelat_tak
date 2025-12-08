@@ -1,9 +1,26 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from schematics import types
+from models.models import *
 
 
 class ModelSerializer:
+    _TYPE_MAP = {
+        "int": IntValue,
+        "float": FloatValue,
+        "expression": Expression,
+        "add": Add,
+        "subtract": Subtract,
+        "multiply": Multiply,
+        "divide": Divide,
+        "power": Power,
+        "add_params": AddParams,
+        "subtract_params": SubtractParams,
+        "multiply_params": MultiplyParams,
+        "divide_params": DivideParams,
+        "power_params": PowerParams,
+    }
+
     @staticmethod
     def to_dict(model_instance) -> Dict[str, Any]:
         if not hasattr(model_instance, '_data'):
@@ -97,3 +114,85 @@ class ModelSerializer:
     def validate_and_serialize(model_instance) -> Dict[str, Any]:
         model_instance.validate()
         return ModelSerializer.export(model_instance)
+
+    @classmethod
+    def create_from_json(cls, json_str: str, model_class) -> Any:
+        data = json.loads(json_str)
+        return cls._create_recursive(data, model_class)
+
+    @classmethod
+    def create_from_dict(cls, data: Dict[str, Any], model_class) -> Any:
+        return cls._create_recursive(data, model_class)
+
+    @classmethod
+    def load_from_file(cls, filepath: str, model_class) -> Any:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            json_str = f.read()
+        return cls.create_from_json(json_str, model_class)
+
+    @classmethod
+    def _create_recursive(cls, data: Any, model_class=None, depth=0) -> Any:
+        if hasattr(data, '_data'):
+            return data
+
+        if isinstance(data, dict):
+            if 'type' in data:
+                type_name = data['type']
+                actual_class = cls._TYPE_MAP.get(type_name)
+
+                if actual_class:
+                    if type_name == 'expression' and 'expression' in data:
+                        from .model_factory import ModelFactory
+                        inner_op = cls._create_recursive(data['expression'])
+                        return ModelFactory.create_expression(inner_op)
+
+                    elif type_name in ['add', 'subtract', 'multiply', 'divide', 'power']:
+                        from .model_factory import ModelFactory
+
+                        if 'params' in data:
+                            params_data = data['params']
+                            if isinstance(params_data, dict) and 'args' in params_data:
+                                args_data = params_data['args']
+                                processed_args = cls._create_recursive(args_data)
+
+                                if type_name == 'add':
+                                    return ModelFactory.create_add_operation(processed_args)
+                                elif type_name == 'subtract':
+                                    return ModelFactory.create_subtract_operation(processed_args)
+                                elif type_name == 'multiply':
+                                    return ModelFactory.create_multiply_operation(processed_args)
+                                elif type_name == 'divide':
+                                    return ModelFactory.create_divide_operation(processed_args)
+                                elif type_name == 'power':
+                                    return ModelFactory.create_power_operation(processed_args)
+
+                    processed_data = {}
+                    for key, value in data.items():
+                        if key == 'type':
+                            processed_data[key] = value
+                        else:
+                            processed_data[key] = cls._create_recursive(value)
+
+                    instance = actual_class(processed_data, strict=False, validate=False)
+                    try:
+                        instance.validate()
+                    except:
+                        pass
+                    return instance
+
+            if model_class:
+                processed_data = {}
+                for key, value in data.items():
+                    processed_data[key] = cls._create_recursive(value)
+
+                instance = model_class(processed_data, strict=False, validate=False)
+                try:
+                    instance.validate()
+                except:
+                    pass
+                return instance
+
+        elif isinstance(data, list):
+            return [cls._create_recursive(item) for item in data]
+
+        return data
