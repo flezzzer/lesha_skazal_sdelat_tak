@@ -53,9 +53,14 @@ json_test = """
 # model = ModelSerializer.create_from_json()
 res_json = ModelSerializer.to_json(model)
 # print(res_json)
-# print("Result:", result, res_expr, f"{res_expr==result}")
-model_new = ModelSerializer.create_from_json(json_test, Expression)
+print("Result:", result, res_expr, f"{res_expr==result}")
+
+model_new = ModelSerializer.create_from_json(json_test)
+model_new_json = ModelSerializer.to_json(model_new)
+# print(res_json)
+model_test_json_after_res = ModelSerializer.create_from_json(res_json)
+print(model_test_json_after_res.calculate())
 print(model_new.calculate())
-model_json = ModelSerializer.create_from_json(json_test, Expression)
-print(model_new)
+
+print(model_new_json)
 

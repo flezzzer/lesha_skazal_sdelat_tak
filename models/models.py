@@ -48,6 +48,25 @@ class IntValue(ValueBase):
         return float(self.value)
 
 
+class OperationBase(PolymorphicBase):
+    _type_field = "type"
+    type = types.StringType(required=True)
+
+    def calculate(self):
+        raise NotImplementedError()
+
+
+class Expression(ValueBase):
+    type = types.StringType(default="expression", required=True)
+    expression = types.PolyModelType(
+        model_spec=OperationBase,
+        claim_function=OperationBase._claim,
+        required=True
+    )
+
+    def calculate(self):
+        return self.expression.calculate()
+
 class FloatValue(ValueBase):
     type = types.StringType(default="float", required=True)
     value = types.FloatType(required=True)
@@ -68,7 +87,7 @@ class AddParams(ParamsBase):
     type = types.StringType(default="add_params", required=True)
     args = types.ListType(
         types.PolyModelType(
-            model_spec=ValueBase,
+            model_spec=[IntValue, FloatValue, Expression],
         ),
         required=True,
         min_size=2
@@ -82,7 +101,7 @@ class SubtractParams(ParamsBase):
     type = types.StringType(default="subtract_params", required=True)
     args = types.ListType(
         types.PolyModelType(
-            model_spec=ValueBase,
+            model_spec=[IntValue, FloatValue, Expression],
         ),
         required=True,
         min_size=2
@@ -99,7 +118,7 @@ class MultiplyParams(ParamsBase):
     type = types.StringType(default="multiply_params", required=True)
     args = types.ListType(
         types.PolyModelType(
-            model_spec=ValueBase,
+            model_spec=[IntValue, FloatValue, Expression],
         ),
         required=True,
         min_size=2
@@ -116,7 +135,7 @@ class DivideParams(ParamsBase):
     type = types.StringType(default="divide_params", required=True)
     args = types.ListType(
         types.PolyModelType(
-            model_spec=ValueBase,
+            model_spec=[IntValue, FloatValue, Expression],
         ),
         required=True,
         min_size=2
@@ -136,7 +155,7 @@ class PowerParams(ParamsBase):
     type = types.StringType(default="power_params", required=True)
     args = types.ListType(
         types.PolyModelType(
-            model_spec=ValueBase,
+            model_spec=[IntValue, FloatValue, Expression],
         ),
         required=True,
         min_size=2
@@ -149,18 +168,10 @@ class PowerParams(ParamsBase):
         return r
 
 
-class OperationBase(PolymorphicBase):
-    _type_field = "type"
-    type = types.StringType(required=True)
-
-    def calculate(self):
-        raise NotImplementedError()
-
-
 class Add(OperationBase):
     type = types.StringType(default="add", required=True)
     params = types.PolyModelType(
-        model_spec=ParamsBase,
+        model_spec=AddParams,
         required=True
     )
 
@@ -171,7 +182,7 @@ class Add(OperationBase):
 class Subtract(OperationBase):
     type = types.StringType(default="subtract", required=True)
     params = types.PolyModelType(
-        model_spec=ParamsBase,
+        model_spec=SubtractParams,
         required=True
     )
 
@@ -182,7 +193,7 @@ class Subtract(OperationBase):
 class Multiply(OperationBase):
     type = types.StringType(default="multiply", required=True)
     params = types.PolyModelType(
-        model_spec=ParamsBase,
+        model_spec=MultiplyParams,
         required=True
     )
 
@@ -193,7 +204,7 @@ class Multiply(OperationBase):
 class Divide(OperationBase):
     type = types.StringType(default="divide", required=True)
     params = types.PolyModelType(
-        model_spec=ParamsBase,
+        model_spec=DivideParams,
         required=True
     )
 
@@ -204,23 +215,13 @@ class Divide(OperationBase):
 class Power(OperationBase):
     type = types.StringType(default="power", required=True)
     params = types.PolyModelType(
-        model_spec=ParamsBase,
+        model_spec=PowerParams,
         required=True
     )
 
     def calculate(self):
         return self.params.calculate()
 
-
-class Expression(ValueBase):
-    type = types.StringType(default="expression", required=True)
-    expression = types.PolyModelType(
-        model_spec=OperationBase,
-        required=True,
-    )
-
-    def calculate(self):
-        return self.expression.calculate()
 
 
 ValueBase.register("int", IntValue)

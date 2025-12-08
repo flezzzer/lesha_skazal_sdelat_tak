@@ -43,7 +43,7 @@ class ModelFactory:
     @staticmethod
     def create_add_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(AddParams, wrapped_args, 'add')
+        params = ModelFactory._create_params(AddParams, wrapped_args, 'add_params')
         return Add({
             'type': 'add',
             'params': params
@@ -52,7 +52,7 @@ class ModelFactory:
     @staticmethod
     def create_subtract_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(SubtractParams, wrapped_args, 'subtract')
+        params = ModelFactory._create_params(SubtractParams, wrapped_args, 'subtract_params')
         return Subtract({
             'type': 'subtract',
             'params': params
@@ -61,7 +61,7 @@ class ModelFactory:
     @staticmethod
     def create_multiply_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(MultiplyParams, wrapped_args, 'multiply')
+        params = ModelFactory._create_params(MultiplyParams, wrapped_args, 'multiply_params')
         return Multiply({
             'type': 'multiply',
             'params': params
@@ -70,7 +70,7 @@ class ModelFactory:
     @staticmethod
     def create_divide_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(DivideParams, wrapped_args, 'divide')
+        params = ModelFactory._create_params(DivideParams, wrapped_args, 'divide_params')
         return Divide({
             'type': 'divide',
             'params': params
@@ -79,7 +79,7 @@ class ModelFactory:
     @staticmethod
     def create_power_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(PowerParams, wrapped_args, 'power')
+        params = ModelFactory._create_params(PowerParams, wrapped_args, 'power_params')
         return Power({
             'type': 'power',
             'params': params
