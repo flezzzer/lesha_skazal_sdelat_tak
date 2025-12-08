@@ -5,46 +5,26 @@ from models.models import *
 
 class ModelSerializer:
     @classmethod
-    def create_from_json(cls, json_str: str) -> Any:
-        data = json.loads(json_str)
-        return cls._build(data)
+    def _build(cls, data):
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, (dict, list)):
+                    data[k] = cls._build(v)
+            if 'type' in data:
+                base_cls = ValueBase._registry.get(data['type']) or \
+                           ParamsBase._registry.get(data['type']) or \
+                           OperationBase._registry.get(data['type']) or \
+                           ValueBase
+                return base_cls(data)
+            return data
+        elif isinstance(data, list):
+            return [cls._build(x) for x in data]
+        return data
 
     @classmethod
-    def _build(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            if 'type' not in data:
-                return data
-
-            type_name = data['type']
-
-            if type_name in ['int', 'float']:
-                if type_name == 'int':
-                    return IntValue(data)
-                else:
-                    return FloatValue(data)
-
-            processed = {}
-            for key, value in data.items():
-                if key == 'type':
-                    processed[key] = value
-                elif isinstance(value, (dict, list)):
-                    processed[key] = cls._build(value)
-                else:
-                    processed[key] = value
-
-            if type_name == 'expression':
-                return Expression(processed)
-            elif type_name in ['add', 'subtract', 'multiply', 'divide', 'power']:
-                return OperationBase._claim(None, processed)(processed)
-            elif type_name.endswith('_params'):
-                return ParamsBase._claim(None, processed)(processed)
-            else:
-                return ValueBase._claim(None, processed)(processed)
-
-        elif isinstance(data, list):
-            return [cls._build(item) for item in data]
-
-        return data
+    def create_from_json(cls, json_str):
+        data = json.loads(json_str)
+        return cls._build(data)
 
     @classmethod
     def to_json(cls, model_instance, indent: int = 2) -> str:

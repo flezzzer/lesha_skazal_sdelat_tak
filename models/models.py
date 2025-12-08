@@ -6,22 +6,30 @@ class PolymorphicBase(Model):
     _registry = {}
     _type_field = None
 
+    def __new__(cls, raw_data=None, *args, **kwargs):
+        if cls is PolymorphicBase or cls._type_field is None:
+            return super().__new__(cls)
+
+        data = raw_data or kwargs
+        if isinstance(data, dict) and cls._type_field in data:
+            target_type = data[cls._type_field]
+            model_cls = cls._registry.get(target_type)
+            if model_cls and model_cls is not cls:
+                return super().__new__(model_cls)
+        return super().__new__(cls)
+
     @classmethod
     def register(cls, class_key, model_class):
         cls._registry[class_key] = model_class
 
     @classmethod
-    def _claim(cls, poly_field, data):
-        if cls._type_field:
-            if isinstance(data, Model):
-                for model_class in cls._registry.values():
-                    if isinstance(data, model_class):
-                        return type(data)
-
-            if isinstance(data, dict) and cls._type_field in data:
-                target_type = data[cls._type_field]
-                return cls._registry.get(target_type)
-
+    def _claim(cls, data, ctx=None):
+        if isinstance(data, Model):
+            for model_class in cls._registry.values():
+                if isinstance(data, model_class):
+                    return model_class
+        elif isinstance(data, dict):
+            return cls._registry.get(data.get(cls._type_field))
         return None
 
 
