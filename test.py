@@ -12,33 +12,33 @@ model = ExpressionParser.parse(expr)
 result = model.calculate()
 json_test = """
 {
-    "type": "expression",
+    "type": "Expression",
     "expression": {
-        "type": "add",
+        "type": "Add",
         "params": {
-            "type": "add_params",
+            "type": "AddParams",
             "args": [
                 {
-                    "type": "int",
+                    "type": "IntValue",
                     "value": 10
                 },
                 {
-                    "type": "float",
+                    "type": "FloatValue",
                     "value": 3.5
                 },
                 {
-                    "type": "expression",
+                    "type": "Expression",
                     "expression": {
-                        "type": "multiply",
+                        "type": "Multiply",
                         "params": {
-                            "type": "multiply_params",
+                            "type": "MultiplyParams",
                             "args": [
                                 {
-                                    "type": "int",
+                                    "type": "IntValue",
                                     "value": 2
                                 },
                                 {
-                                    "type": "float",
+                                    "type": "FloatValue",
                                     "value": 4.0
                                 }
                             ]
@@ -50,14 +50,14 @@ json_test = """
     }
 }
 """
-# model = ModelSerializer.create_from_json()
+
 res_json = ModelSerializer.to_json(model)
-# print(res_json)
+
 print("Result:", result, res_expr, f"{res_expr==result}")
 
 model_new = ModelSerializer.create_from_json(json_test)
 model_new_json = ModelSerializer.to_json(model_new)
-# print(res_json)
+
 model_test_json_after_res = ModelSerializer.create_from_json(res_json)
 print(model_test_json_after_res.calculate())
 print(model_new.calculate())

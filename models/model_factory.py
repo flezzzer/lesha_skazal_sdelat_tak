@@ -9,17 +9,17 @@ class ModelFactory:
 
     @staticmethod
     def create_int(value):
-        return IntValue({'value': float(value), 'type': 'int'})
+        return IntValue({'value': float(value), 'type': 'IntValue'})
 
     @staticmethod
     def create_float(value):
-        return FloatValue({'value': value, 'type': 'float'})
+        return FloatValue({'value': value, 'type': 'FloatValue'})
 
     @staticmethod
     def create_expression(operation):
         if isinstance(operation, Expression):
             return operation
-        return Expression({'expression': operation, 'type': 'expression'})
+        return Expression({'expression': operation, 'type': 'Expression'})
 
     @staticmethod
     def _wrap_args(args):
@@ -43,44 +43,44 @@ class ModelFactory:
     @staticmethod
     def create_add_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(AddParams, wrapped_args, 'add_params')
+        params = ModelFactory._create_params(AddParams, wrapped_args, 'AddParams')
         return Add({
-            'type': 'add',
+            'type': 'Add',
             'params': params
         })
 
     @staticmethod
     def create_subtract_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(SubtractParams, wrapped_args, 'subtract_params')
+        params = ModelFactory._create_params(SubtractParams, wrapped_args, 'SubtractParams')
         return Subtract({
-            'type': 'subtract',
+            'type': 'Subtract',
             'params': params
         })
 
     @staticmethod
     def create_multiply_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(MultiplyParams, wrapped_args, 'multiply_params')
+        params = ModelFactory._create_params(MultiplyParams, wrapped_args, 'MultiplyParams')
         return Multiply({
-            'type': 'multiply',
+            'type': 'Multiply',
             'params': params
         })
 
     @staticmethod
     def create_divide_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(DivideParams, wrapped_args, 'divide_params')
+        params = ModelFactory._create_params(DivideParams, wrapped_args, 'DivideParams')
         return Divide({
-            'type': 'divide',
+            'type': 'Divide',
             'params': params
         })
 
     @staticmethod
     def create_power_operation(args):
         wrapped_args = ModelFactory._wrap_args(args)
-        params = ModelFactory._create_params(PowerParams, wrapped_args, 'power_params')
+        params = ModelFactory._create_params(PowerParams, wrapped_args, 'PowerParams')
         return Power({
-            'type': 'power',
+            'type': 'Power',
             'params': params
         })
