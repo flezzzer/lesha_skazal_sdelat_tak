@@ -31,3 +31,17 @@ class ModelSerializer:
     def load_from_file(cls, filepath: str) -> Any:
         with open(filepath, 'r', encoding='utf-8') as f:
             return cls.create_from_json(f.read())
+
+
+    @staticmethod
+    def create_from_file(filepath):
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                contexts = json.load(f)
+        except Exception as e:
+            raise ValueError(f"Error loading contexts from file: {str(e)}")
+
+        if not isinstance(contexts, list):
+            contexts = [contexts]
+
+        return contexts

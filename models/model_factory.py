@@ -124,3 +124,22 @@ class ModelFactory:
         operation = ModelFactory.create_operation(operation_name, args)
         expr = ModelFactory.create_expression(operation)
         return expr.calculate(context)
+
+
+    @staticmethod
+    def calcualte_big_context(operation_name, args, list_context=None):
+        results = []
+        operation = ModelFactory.create_operation(operation_name, args)
+        expr = ModelFactory.create_expression(operation)
+        for ctx in list_context:
+            results.append(expr.calculate(ctx))
+
+
+    @staticmethod
+    def calcualte_big_context_func(model, list_context=None):
+        results = []
+
+        for ctx in list_context:
+            results.append(model.calculate(ctx))
+
+        return results

@@ -4,6 +4,7 @@ from models.expression_parser import ExpressionParser
 from models.model_serializer import ModelSerializer
 from models.models import Expression
 import json
+from operator import add, sub, mul, truediv
 
 # expr = "5+(3*4)*3+2-(35-(6-2+(3-2)))"
 # expr = "(3+3+3+4)"
